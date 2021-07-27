@@ -33,14 +33,14 @@ while True:
 	if comand_input == 'END':
 		break
 	comand_input = comand_input.split(' ')
-	if comand_input[0] == 'SET' or comand_input[0] == 'UNSET':
+	if comand_input[0] == 'SET' or comand_input[0] == 'UNSET': #запоминаем последние команды для каждого элемент БД
 		c = 0
 		for i in range(len(last_comand)):
 			if last_comand[i][1] == comand_input[1]:
 				last_comand.pop(i)
 				break
 		last_comand.append(comand_input)
-	if comand_input[0] == 'BEGIN':
+	if comand_input[0] == 'BEGIN': #транзакции
 		comand_input_last = ''
 		base_temp = mini_base.copy()
 		while True:
