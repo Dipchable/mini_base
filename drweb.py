@@ -1,64 +1,77 @@
 mini_base = dict()
+last_comand = list()
 
-def set_base(input_cmd, type_base):
-	if input_cmd == '':
+#Работа с базой данных
+def set_base(comand_input, type_base):
+	if comand_input == '':
 		return
-	if input_cmd[0] == 'SET':
-		type_base[input_cmd[1]] = input_cmd[2]
-	elif input_cmd[0] == 'GET':
-		if type_base.get(input_cmd[1]):
-			print(type_base[input_cmd[1]])
+	if comand_input[0] == 'SET':
+		type_base[comand_input[1]] = comand_input[2]
+	elif comand_input[0] == 'GET':
+		if type_base.get(comand_input[1]):
+			print(type_base[comand_input[1]])
 		else:
 			print("NULL")
-	elif input_cmd[0] == 'UNSET':
-		if type_base.get(input_cmd[1]):
-			type_base.pop(input_cmd[1])
+	elif comand_input[0] == 'UNSET':
+		if type_base.get(comand_input[1]):
+			type_base.pop(comand_input[1])
 		else:
 			print("NULL")
-	elif input_cmd[0] == 'COUNTS':
+	elif comand_input[0] == 'COUNTS':
 		c = 0
 		for i in type_base:
-			if type_base[i] == input_cmd[1]:
+			if type_base[i] == comand_input[1]:
 				c += 1
 		print(c)
-	elif input_cmd[0] == 'FIND':
+	elif comand_input[0] == 'FIND':
 		for i in type_base:
-			if type_base[i] == input_cmd[1]:
+			if type_base[i] == comand_input[1]:
 				print(i)
 
-n_first = ''
 while True:
-	n = input()
-	if n == 'END':
+	comand_input = input()
+	if comand_input == 'END':
 		break
-	n = n.split(' ')
-	if n[0] == 'SET' or n[0] == 'UNSET':
-		n_first = n
-	set_base(n, mini_base)
-	if n[0] == 'BEGIN':
+	comand_input = comand_input.split(' ')
+	if comand_input[0] == 'SET' or comand_input[0] == 'UNSET':
+		c = 0
+		for i in range(len(last_comand)):
+			if last_comand[i][1] == comand_input[1]:
+				last_comand.pop(i)
+				break
+		last_comand.append(comand_input)
+	if comand_input[0] == 'BEGIN':
+		comand_input_last = ''
 		base_temp = mini_base.copy()
-		n_last = ''
-		# n_first = ''
 		while True:
-			n = input()
-			n = n.split(' ')
-			if n[0] == 'COMMIT':
-				# for i in base_temp:
+			comand_input = input()
+			comand_input = comand_input.split(' ')
+			if comand_input[0] == 'COMMIT':
 				mini_base = base_temp.copy()
 				base_temp.clear()
 				break
-			if n[0] == 'ROLLBACK':
-				print(n_first)
-				set_base(n_first, base_temp)
-				n_last = ''
+			if comand_input[0] == 'ROLLBACK':
+				if last_comand:
+					for i in range(len(last_comand)):
+						if last_comand[i][1] == comand_input_last[1]:
+							set_base(last_comand[i], base_temp)
+				elif comand_input_last[0] == 'SET':
+					comand_input_last[0] = 'UNSET'
+					set_base(comand_input_last, base_temp)
+				elif comand_input_last[0] == 'UNSET':
+					comand_input_last[0] = 'SET'
+					set_base(comand_input_last, base_temp)
+				comand_input_last = ''
 			else:
-				set_base(n_last, base_temp)
-				if n[0] == 'SET' or n[0] == 'UNSET':
-					if n_last != '':
-						n_first = n_last
-					n_last = n
+				set_base(comand_input_last, base_temp)
+				if comand_input[0] == 'SET' or comand_input[0] == 'UNSET':
+					if comand_input_last != '':
+						for i in range(len(last_comand)):
+							if last_comand[i][1] == comand_input_last[1]:
+								last_comand.pop(i)
+								break
+						last_comand.append(comand_input_last)
+					comand_input_last = comand_input
 				else:
-					# n_first = n_last
-					set_base(n_last, base_temp)
-					set_base(n, base_temp)
-print(mini_base)
+					set_base(comand_input, base_temp)
+	set_base(comand_input, mini_base)
