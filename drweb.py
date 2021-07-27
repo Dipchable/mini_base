@@ -34,13 +34,13 @@ while True:
 		break
 	comand_input = comand_input.split(' ')
 	if comand_input[0] == 'SET' or comand_input[0] == 'UNSET': #запоминаем последние команды для каждого элемент БД
-		c = 0
 		for i in range(len(last_comand)):
 			if last_comand[i][1] == comand_input[1]:
 				last_comand.pop(i)
 				break
 		last_comand.append(comand_input)
 	if comand_input[0] == 'BEGIN': #транзакции
+		last_comand.append(['BEGIN'])
 		comand_input_last = ''
 		base_temp = mini_base.copy()
 		while True:
@@ -51,27 +51,25 @@ while True:
 				base_temp.clear()
 				break
 			if comand_input[0] == 'ROLLBACK':
-				if last_comand:
-					for i in range(len(last_comand)):
+				comand_input_last = last_comand[-1]
+				if comand_input_last != ['BEGIN']:
+					for i in range(len(last_comand)-2, -1, -1):
+						if last_comand[i] == ['BEGIN']:
+							continue
 						if last_comand[i][1] == comand_input_last[1]:
 							set_base(last_comand[i], base_temp)
-				elif comand_input_last[0] == 'SET':
-					comand_input_last[0] = 'UNSET'
-					set_base(comand_input_last, base_temp)
-				elif comand_input_last[0] == 'UNSET':
-					comand_input_last[0] = 'SET'
-					set_base(comand_input_last, base_temp)
-				comand_input_last = ''
+							last_comand.pop(-1)
+							break
+						if i == 0:
+							if comand_input_last[0] == 'SET':
+								comand_input_last[0] = 'UNSET'
+								set_base(comand_input_last, base_temp)
+								last_comand.pop(-1)
+					comand_input_last = ''
 			else:
-				set_base(comand_input_last, base_temp)
 				if comand_input[0] == 'SET' or comand_input[0] == 'UNSET':
-					if comand_input_last != '':
-						for i in range(len(last_comand)):
-							if last_comand[i][1] == comand_input_last[1]:
-								last_comand.pop(i)
-								break
-						last_comand.append(comand_input_last)
-					comand_input_last = comand_input
+					last_comand.append(comand_input)
+					set_base(comand_input, base_temp)
 				else:
 					set_base(comand_input, base_temp)
 	set_base(comand_input, mini_base)
